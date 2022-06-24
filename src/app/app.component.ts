@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { BarComponent } from './bar/bar.component';
+import { Component, ViewChild } from '@angular/core';
 
 @Component({
   selector: 'app-root',
@@ -7,4 +8,15 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'demo1';
+  isMouseDown = false;
+
+  @ViewChild('appBar', { static : true}) appBar: BarComponent | undefined;
+
+  onAddNode() {
+    this.isMouseDown = false;
+    // call child to add new node
+    if (this.appBar) {
+      this.appBar.addNewNode()
+    }
+  }
 }
