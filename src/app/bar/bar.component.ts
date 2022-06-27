@@ -24,7 +24,7 @@ export class BarComponent implements OnInit {
 
   ngOnInit(): void {
     this.createSvg();
-    this.drawBars(this.data);
+    this.drawNode(this.data);
   }
 
   private createSvg(): void {
@@ -34,16 +34,20 @@ export class BarComponent implements OnInit {
     .attr("height", '100%')
     .attr('fill', '#f3f4f5')
     .attr('preserveAspectRatio', 'xMidYMid meet');
-    // .append("g")
-    // .attr("transform", "translate(" + this.margin + "," + this.margin + ")");
   }
 
   public addNewNode() {
-    const g = this.componentArea.append('g').attr('id', 'generic-node').attr('class', 'jss366');
-    const g1 = g.append('g').attr('transform', 'translate(210, 380)').attr('class', 'jss449').append('g');
-    g1.append('rect').attr('width', 60).attr('height', 60).attr('fill', 'white').attr('stroke', 'black').attr('stroke-width', 1.5);
-    const g1Svg = g1.append('g').attr('transform', 'translate(5, 5)').append('svg').attr('viewBox', '0 0 50 50').attr('width', 50).attr('height', 50);
-    g1Svg.append('use').attr('href', '#AWS--Compute--_Instance--Amazon-EC2_A1-Instance_light-bg');
+    // const rootG = this.componentArea.append('g').attr('class', 'jss180').attr('tabindex', 0).attr('pointer-events', 'auto');
+    const rootG1 = this.componentArea.append('g').attr('class', 'jss368').attr('transform', 'translate(170, 310)').attr('opacity', 1); //.attr('pointer-events', 'visiblePainted')
+    const gSingleMom = rootG1.append('g');
+    gSingleMom.append('rect').attr('width', 60).attr('height', 60).attr('fill', 'white').attr('stroke', 'black').attr('stroke-width', 1.5).attr('class', 'jss369');
+    const rootGG1 = gSingleMom.append('g').attr('transform', 'translate(5, 5)').append('svg').attr('viewBox', '0 0 50 50').attr('width', 50).attr('height', 50);
+    rootGG1.append('use').attr('href', '#AWS--Compute--_Instance--Amazon-EC2_A1-Instance_light-bg');
+
+    const genericNode = this.componentArea.append('g').attr('id', 'generic-node').attr('class', 'jss368').attr('transform', 'translate(170, 310)');
+    genericNode.append('rect').attr('width', 60).attr('height', 60).attr('fill', 'transparent').attr('stroke', '#581bf5').attr('stroke-width', 0).attr('stroke-opacity', 1);
+    // const g1Svg = g1.append('g').attr('transform', 'translate(5, 5)').append('svg').attr('viewBox', '0 0 50 50').attr('width', 50).attr('height', 50);
+    // g1Svg.append('use').attr('href', '#AWS--Compute--_Instance--Amazon-EC2_A1-Instance_light-bg');
 
     var drag = d3
     .drag()
@@ -51,62 +55,49 @@ export class BarComponent implements OnInit {
       return d;
     })
     .on("drag", function(d) {
-      console.log(d);
+      // console.log(d3.select(this));
       d3.select(this)
         .attr("transform", "translate(" + d.x + "," + d.y + ")");
+        rootG1.attr("transform", "translate(" + d.x + "," + d.y + ")");
     });
-    g.call(drag);
-    g1.call(drag);
-    g1Svg.call(drag);
 
-    g.on("click", function(d: any) {
+    gSingleMom.call(drag);
+    rootG1.call(drag);
+    genericNode.call(drag);
+    
+    const me = this;
+    genericNode.on("click", function(d: any) {
       console.log(d);
       // Create the <foreignObject>:
-      let ddiv = g.append("foreignObject") 
-      .attr("x", 280) 
-      .attr("y", 308) 
+      let ddiv = me.componentArea.append("foreignObject") 
+      .attr("x", d.offsetX + 30) 
+      .attr("y", d.offsetY - 90) 
       .attr("width", 60)
       .attr("height", 280)         
       .append("xhtml:div") // <<<---- xhtml: prefix!
         .classed("jss181", true)
 
-      const button = ddiv.append("xhtml:button");
+      const button = ddiv.append("xhtml:button").classed("MuiButtonBase-root MuiFab-root MuiFab-sizeSmall MuiFab-primary", true);
       button.append('xhtml:span').attr('class', 'MuiTouchRipple-root');
       const buttonSvg = button.append('span').attr('class', 'MuiFab-label').append('svg').attr('class', 'MuiSvgIcon-root').attr('viewBox', '0 0 24 24');
       buttonSvg.append('path').attr('d', 'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z');
     });
-    g.on("blur", (event: any) => {
-      console.log(event);
-      
-    })
- 
-      // var div = fo.append('div')
-      //     .append('div')
-      //     .attr({'class': 'jss181'});
-      // div.append('p')
-      //     .attr('class', 'lead')
-      //     .html('Holmes was certainly not a difficult man to live with.');
-      // div.append('p')
-      //     .html('He was quiet in his ways, and his habits were regular. It was rare for him to be up after ten at night, and he had invariably breakfasted and gone out before I rose in the morning.');
-      // var foHeight = div[0][0].getBoundingClientRect().height;
-      // fo.attr({
-      //     'height': foHeight
-      // });
-      // svg.insert('polygon', '.svg-tooltip')
-      //     .attr({
-      //     'points': "0,0 0," + foHeight + " " + foWidth + "," + foHeight + " " + foWidth + ",0 " + (t) + ",0 " + tip.w + "," + (-tip.h) + " " + (t / 2) + ",0",
-      //         'height': foHeight + tip.h,
-      //         'width': foWidth,
-      //         'fill': '#D8D8D8',
-      //         'opacity': 0.75,
-      //         'transform': 'translate(' + (anchor.w - tip.w) + ',' + (anchor.h + tip.h) + ')'
-      // });
   }
 
-  private drawBars(data: any[]): void {
+  dragstarted(th: any) {
+
+  }
+
+  private drawNode(data: any[]): void {
 
     this.addIcons();
+    this.drawGrid();
+    // this.drawBar(data);
 
+    this.appendComponent();
+  }
+
+  private drawGrid() {
     const drawingGrid = this.svg.append("g").attr('id', 'drawing-grid');
     drawingGrid.append('rect')
                 .attr('id', 'panner')
@@ -158,10 +149,6 @@ export class BarComponent implements OnInit {
         .attr('height', '100%')
         .attr('opacity', 1)
         .attr('fill', 'url(#squareGrid)');
-
-    // this.drawBar(data);
-
-    this.appendComponent();
   }
 
   private drawBar(data: any[]) {
