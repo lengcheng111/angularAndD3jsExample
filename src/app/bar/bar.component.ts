@@ -1,3 +1,4 @@
+import { Utils } from './../d3/node-template';
 import { Component, OnInit } from '@angular/core';
 import * as d3 from 'd3';
 
@@ -16,9 +17,7 @@ export class BarComponent implements OnInit {
   ];
   svg: any;
   resourceArea: any;
-  private margin = 50;
-  private width = 750 - this.margin * 2;
-  private height = 400 - this.margin * 2;
+  
 
   constructor() {}
 
@@ -93,65 +92,18 @@ export class BarComponent implements OnInit {
       .on("start", function() {}) // TODO: handle drag start
       .on('drag', function (d) {
         d3.select(this).attr('transform', 'translate(' + d.x + ',' + d.y + ')');
-        me.transformToolBar(rootResource);
+        Utils.transformToolBar(rootResource);
 
       }).on("end", function(d: any) {
         // TODO: if no toolbar resource then create for it, then transform
-        me.createToolbarResource(rootResource);
-        me.transformToolBar(rootResource);
+        Utils.createToolbarResource(rootResource, me.resourceArea);
+        Utils.transformToolBar(rootResource);
       }); // TODO: handle drag end
 
     // handle drag event for resourceNode
     rootResource.call(drag);
     
-    rootResource.on('click', () => this.createToolbarResource(rootResource));
-  }
-
-
-  private createToolbarResource(rootResource: any) {
-    const hasToolBar = d3.selectAll('foreignObject').empty();
-      if (!hasToolBar) {
-        return;
-      }
-      const translateRootResource = rootResource.node().transform.baseVal.getItem(0).matrix as SVGMatrix;
-
-      // Create the <foreignObject>:
-      let ddiv = this.resourceArea
-        .append('foreignObject')
-        
-        // .attr("x", d.offsetX + 30)
-        // .attr("y", d.offsetY - 90)
-        .attr('transform', `translate(${translateRootResource.e + 60}, ${translateRootResource.f - 100})`)
-        .attr('width', 60)
-        .attr('height', 280)
-        .append('xhtml:div') // <<<---- xhtml: prefix!
-        .classed('jss181', true);
-
-      const button = ddiv
-        .append('xhtml:button')
-        .classed(
-          'MuiButtonBase-root MuiFab-root MuiFab-sizeSmall MuiFab-primary',
-          true
-        );
-      button.append('xhtml:span').attr('class', 'MuiTouchRipple-root');
-      const buttonSvg = button
-        .append('span')
-        .attr('class', 'MuiFab-label')
-        .append('svg')
-        .attr('class', 'MuiSvgIcon-root')
-        .attr('viewBox', '0 0 24 24');
-      buttonSvg
-        .append('path')
-        .attr(
-          'd',
-          'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'
-        );
-  }
-  
-
-  private transformToolBar(rootResource: any) {
-    const translateRootResource = rootResource.node().transform.baseVal.getItem(0).matrix as SVGMatrix;
-    d3.selectAll('foreignObject').attr('transform', `translate(${translateRootResource.e + 60}, ${translateRootResource.f - 100})`);
+    rootResource.on('click', () => Utils.createToolbarResource(rootResource, this.resourceArea));
   }
 
   private drawNode(data: any[]): void {
@@ -165,9 +117,7 @@ export class BarComponent implements OnInit {
   private drawGrid() {
     const drawingGrid = this.svg.append('g').attr('id', 'drawing-grid');
     drawingGrid.on('click', function (d: any) {
-      console.log(d3.selectAll('foreignObject'));
       d3.selectAll('foreignObject').remove();
-      
     });
 
     drawingGrid
@@ -227,55 +177,7 @@ export class BarComponent implements OnInit {
       .attr('opacity', 1)
       .attr('fill', 'url(#squareGrid)');
   }
-
-  private drawBar(data: any[]) {
-    // Add X axis
-    const x = d3
-      .scaleBand()
-      .range([0, this.width])
-      .domain(data.map((d) => d.Framework))
-      .padding(0.2);
-
-    var drag = d3
-      .drag()
-      .subject((d) => {
-        return d;
-      })
-      .on('drag', function (d) {
-        console.log(d);
-        d3.select(this).attr('transform', 'translate(' + d.x + ',' + d.y + ')');
-      });
-
-    this.svg
-      .append('g')
-      .attr('transform', 'translate(0,' + this.height + ')')
-      .call(d3.axisBottom(x))
-      .selectAll('text')
-      .attr('transform', 'translate(-10,0)rotate(-45)')
-      .style('text-anchor', 'end');
-
-    // Add Y axis
-    const y = d3.scaleLinear().domain([0, 200000]).range([this.height, 0]);
-
-    this.svg.append('g').call(d3.axisLeft(y));
-
-    // Create and fill the bars
-    this.svg
-      .selectAll('bars')
-      .data(data)
-      .enter()
-      .append('rect')
-      .attr('x', (d: { Framework: string }) => x(d.Framework))
-      .attr('y', (d: { Stars: d3.NumberValue }) => y(d.Stars))
-      .attr('width', x.bandwidth())
-      .attr(
-        'height',
-        (d: { Stars: d3.NumberValue }) => this.height - y(d.Stars)
-      )
-      .attr('fill', '#d04a35')
-      .call(drag);
-  }
-
+   
   private addIcons() {
     const svgSprite = this.svg.append('svg');
     const symbol = svgSprite
