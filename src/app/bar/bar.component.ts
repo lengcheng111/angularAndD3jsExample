@@ -83,26 +83,8 @@ export class BarComponent implements OnInit {
     // const g1Svg = g1.append('g').attr('transform', 'translate(5, 5)').append('svg').attr('viewBox', '0 0 50 50').attr('width', 50).attr('height', 50);
     // g1Svg.append('use').attr('href', '#AWS--Compute--_Instance--Amazon-EC2_A1-Instance_light-bg');
 
-    const me = this as any;
-    const drag = d3
-      .drag()
-      .subject((d) => {
-        return d;
-      })
-      .on("start", function() {}) // TODO: handle drag start
-      .on('drag', function (d) {
-        d3.select(this).attr('transform', 'translate(' + d.x + ',' + d.y + ')');
-        Utils.transformToolBar(rootResource);
-
-      }).on("end", function(d: any) {
-        // TODO: if no toolbar resource then create for it, then transform
-        Utils.createToolbarResource(rootResource, me.resourceArea);
-        Utils.transformToolBar(rootResource);
-      }); // TODO: handle drag end
-
     // handle drag event for resourceNode
-    rootResource.call(drag);
-    
+    rootResource.call(Utils.dragResourceNode(rootResource, this.resourceArea));
     rootResource.on('click', () => Utils.createToolbarResource(rootResource, this.resourceArea));
   }
 
