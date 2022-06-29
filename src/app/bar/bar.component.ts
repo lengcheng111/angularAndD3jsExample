@@ -1,6 +1,7 @@
 import { Utils } from './../d3/node-template';
 import { Component, OnInit } from '@angular/core';
 import * as d3 from 'd3';
+import { D3EventHandler } from '../d3/d3-event';
 
 @Component({
   selector: 'app-bar',
@@ -22,8 +23,17 @@ export class BarComponent implements OnInit {
   constructor() {}
 
   ngOnInit(): void {
+    // const savedGraph = localStorage.getItem('demo');
+    // if (savedGraph) {
+    //   d3
+    //   .select('div#bar').html(savedGraph);
+    // } else {
+    //   this.createSvg();
+    //   this.drawNode(this.data);
+    // }
     this.createSvg();
     this.drawNode(this.data);
+    
   }
 
   private createSvg(): void {
@@ -64,7 +74,7 @@ export class BarComponent implements OnInit {
       .attr(
         'href',
         '#AWS--Compute--_Instance--Amazon-EC2_A1-Instance_light-bg'
-      );
+    );
     // TODO: keep genericNode for handle later
     // https://stackoverflow.com/questions/29541520/how-to-access-previous-sibling-of-this-when-iterating-over-a-selection
     // const genericNode = this.resourceArea
@@ -84,8 +94,18 @@ export class BarComponent implements OnInit {
     // g1Svg.append('use').attr('href', '#AWS--Compute--_Instance--Amazon-EC2_A1-Instance_light-bg');
 
     // handle drag event for resourceNode
-    rootResource.call(Utils.dragResourceNode(rootResource, this.resourceArea));
+    rootResource.call(D3EventHandler.dragResourceNode(rootResource, this.resourceArea));
     rootResource.on('click', () => Utils.createToolbarResource(rootResource, this.resourceArea));
+    rootResource.on('mouseover', function(d: any) {
+      const that = this;
+      D3EventHandler.mouseOverResourceNode(that);
+    });
+
+    // this.resourceArea.on('click', function(d) {
+    //   const that = this;
+    //   console.log(JSON.stringify(that.resourceArea.node()));
+      
+    // })
   }
 
   private drawNode(data: any[]): void {

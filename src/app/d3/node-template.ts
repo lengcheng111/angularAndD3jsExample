@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import { v4 as uuidv4 } from 'uuid';
+import { D3EventHandler } from './d3-event';
 
 export class Utils {
 
@@ -8,6 +9,18 @@ export class Utils {
     static activeNode: any;
 
     public static createToolbarResource(rootResource: any, resourceArea: any) {
+      // console.log(resourceArea);
+      
+      //https://observablehq.com/@mbostock/saving-svg
+        resourceArea.datum(function(d:any) {
+          // console.log(this);
+          
+          const that = this;
+          console.log(that.parentNode.innerHTML);
+          window.localStorage.setItem('demo', that.parentNode.innerHTML)
+          
+        })
+
         const hasToolBar = d3.selectAll('foreignObject').empty();
         if (!hasToolBar) {
           return;
@@ -18,7 +31,7 @@ export class Utils {
           .append('foreignObject')
           // .attr("x", d.offsetX + 30)
           // .attr("y", d.offsetY - 90)
-          .attr('transform', Utils.setAttrTransform(rootResource))
+          .attr('transform', D3EventHandler.setAttrTransform(rootResource))
           .attr('width', 60)
           .attr('height', 280)
           .append('xhtml:div') // <<<---- xhtml: prefix!
@@ -88,11 +101,11 @@ export class Utils {
               .attr('fill', '#5a48e0');
         endArrow.on('mouseover', function(d: any) {
           const that = this;
-          Utils.toggleCircle(that, true);
+          D3EventHandler.toggleCircle(that, true);
         })
         .on('mouseout', function(d: any) {
           const that = this;
-          Utils.toggleCircle(that, false);
+          D3EventHandler.toggleCircle(that, false);
         })
         endArrow.call(this.dragEndArrowLinked(id, d3Path, path));
         // gMove2.append('polygon').attr('id', `${id}_endPoint`)
@@ -105,12 +118,6 @@ export class Utils {
         //       .attr('points', '-200,424 -200,430 -200,436 -200,430 -200,424');
     }
 
-    static toggleCircle = (that, bigger = true) => {
-      d3.select(that).transition()
-        .duration(1)
-        .attr('r', () => bigger ? 8 : 3);
-    }
-
     public static dragEndArrowLinked = (idOfLink, d3Path, path) => {
       console.log(idOfLink);
       console.log(d3Path);
@@ -118,7 +125,9 @@ export class Utils {
       return d3.drag().subject((d) => {
           return d;
       })
-      .on("start", function() {}) // TODO: handle drag start
+      .on("start", function() {
+        D3EventHandler.selectedLink = path;
+      })
       .on('drag', function (d) {
           d3.select(this)
           .attr('cx', d.x)
@@ -130,24 +139,12 @@ export class Utils {
 
           path.attr('d', pt2);
           
-      }).on("end", function(d: any) {});
+      }).on("end", function(d: any) {
+        D3EventHandler.selectedLink = null;
+      });
     }
 
-    public static dragResourceNode = (rootResource: any, resourceArea: any) => {
-        return d3.drag().subject((d) => {
-            return d;
-        })
-        .on("start", function() {}) // TODO: handle drag start
-        .on('drag', function (d) {
-            d3.select(this).attr('transform', 'translate(' + d.x + ',' + d.y + ')');
-            Utils.transformToolBar(rootResource);
 
-        }).on("end", function(d: any) {
-            // TODO: if no toolbar resource then create for it, then transform
-            Utils.createToolbarResource(rootResource, resourceArea);
-            Utils.transformToolBar(rootResource);
-        }); // TODO: handle drag end
-    }
 
     public static addEditToolbarButton(container: any) {
         const editButton = container
@@ -200,13 +197,5 @@ export class Utils {
         });
     }
 
-    public static transformToolBar(rootResource: any) {
-        d3.selectAll('foreignObject').attr('transform', this.setAttrTransform(rootResource));
-    }
 
-    public static setAttrTransform(rootResource: any) {
-        const marginYOfToolbar = 100;
-        const translateRootResource = rootResource.node().transform.baseVal.getItem(0).matrix as SVGMatrix;
-        return `translate(${translateRootResource.e + 60}, ${translateRootResource.f - marginYOfToolbar})`;
-    }
 }
