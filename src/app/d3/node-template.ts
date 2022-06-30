@@ -1,3 +1,4 @@
+import { ResourceAndLink } from './resource-link-id';
 import * as d3 from 'd3';
 import { v4 as uuidv4 } from 'uuid';
 import { D3EventHandler } from './d3-event';
@@ -7,30 +8,30 @@ export class Utils {
     // https://bl.ocks.org/mbostock/4566102
 
     static activeNode: any;
+    static resourceArea: any;
+
+    static mapSource: ResourceAndLink[] = []; // map id of source resource and the link of itself
+    static mapTarget: ResourceAndLink[] = []; // map id of target resource and the link of itself
 
     public static createToolbarResource(rootResource: any, resourceArea: any) {
       // console.log(resourceArea);
       
       //https://observablehq.com/@mbostock/saving-svg
-        resourceArea.datum(function(d:any) {
-          // console.log(this);
+        // resourceArea.datum(function(d:any) {
+        //   // console.log(this);
           
-          const that = this;
-          console.log(that.parentNode.innerHTML);
-          window.localStorage.setItem('demo', that.parentNode.innerHTML)
+        //   const that = this;
+        //   console.log(that.parentNode.innerHTML);
+        //   window.localStorage.setItem('demo', that.parentNode.innerHTML)
           
-        })
-
+        // })
         const hasToolBar = d3.selectAll('foreignObject').empty();
         if (!hasToolBar) {
           return;
         }
         this.activeNode = rootResource;
         // Create the <foreignObject>:
-        let ddiv = resourceArea
-          .append('foreignObject')
-          // .attr("x", d.offsetX + 30)
-          // .attr("y", d.offsetY - 90)
+        let ddiv = resourceArea.append('foreignObject')
           .attr('transform', D3EventHandler.setAttrTransform(rootResource))
           .attr('width', 60)
           .attr('height', 280)
@@ -38,7 +39,7 @@ export class Utils {
           .classed('jss181', true);
 
         Utils.addEditToolbarButton(ddiv);
-        Utils.addLinkedToolbarButton(ddiv, resourceArea);
+        Utils.addLinkedToolbarButton(rootResource, resourceArea);
     }
 
     public static drawLink(container: any, resourceArea: any) {
@@ -144,8 +145,6 @@ export class Utils {
       });
     }
 
-
-
     public static addEditToolbarButton(container: any) {
         const editButton = container
         .append('xhtml:button')
@@ -197,5 +196,78 @@ export class Utils {
         });
     }
 
+    public static createResourceContainer(rootSvg) {
+        Utils.resourceArea = rootSvg
+          .append('g')
+          .attr('pointer-events', 'auto')
+          .attr('class', 'jss180');
+    }
 
+    public static addNewNode() {
+      // const rootG = this.componentArea.append('g').attr('class', 'jss180').attr('tabindex', 0).attr('pointer-events', 'auto');
+      const id = uuidv4();
+      this.mapSource.push({
+        idSource: id,
+        idLink: [],
+        type: 's'
+      } as ResourceAndLink);
+      const rootResource = Utils.resourceArea
+        .append('g').attr('id', id)
+        .attr('class', 'jss368')
+        .attr('transform', 'translate(470, 110)')
+        .attr('opacity', 1); //.attr('pointer-events', 'visiblePainted')
+      const gSingleMom = rootResource.append('g');
+      gSingleMom
+        .append('rect')
+        .attr('width', 60)
+        .attr('height', 60)
+        .attr('fill', 'white')
+        .attr('stroke', 'black')
+        .attr('stroke-width', 1.5)
+        .attr('class', 'jss369');
+      const rootGG1 = gSingleMom
+        .append('g')
+        .attr('transform', 'translate(5, 5)')
+        .append('svg')
+        .attr('viewBox', '0 0 50 50')
+        .attr('width', 50)
+        .attr('height', 50);
+      rootGG1
+        .append('use')
+        .attr(
+          'href',
+          '#AWS--Compute--_Instance--Amazon-EC2_A1-Instance_light-bg'
+      );
+      // TODO: keep genericNode for handle later
+      // https://stackoverflow.com/questions/29541520/how-to-access-previous-sibling-of-this-when-iterating-over-a-selection
+      // const genericNode = this.resourceArea
+      //   .append('g')
+      //   .attr('id', 'generic-node')
+      //   .attr('class', 'jss368')
+      //   .attr('transform', 'translate(170, 310)');
+      // genericNode
+      //   .append('rect')
+      //   .attr('width', 60)
+      //   .attr('height', 60)
+      //   .attr('fill', 'transparent')
+      //   .attr('stroke', '#581bf5')
+      //   .attr('stroke-width', 0)
+      //   .attr('stroke-opacity', 1);
+      // const g1Svg = g1.append('g').attr('transform', 'translate(5, 5)').append('svg').attr('viewBox', '0 0 50 50').attr('width', 50).attr('height', 50);
+      // g1Svg.append('use').attr('href', '#AWS--Compute--_Instance--Amazon-EC2_A1-Instance_light-bg');
+  
+      // handle drag event for resourceNode
+      rootResource.call(D3EventHandler.dragResourceNode(rootResource, Utils.resourceArea));
+      rootResource.on('click', () => Utils.createToolbarResource(rootResource, Utils.resourceArea));
+      rootResource.on('mouseover', function(d: any) {
+        const that = this;
+        D3EventHandler.mouseOverResourceNode(that);
+      });
+  
+      // this.resourceArea.on('click', function(d) {
+      //   const that = this;
+      //   console.log(JSON.stringify(that.resourceArea.node()));
+        
+      // })
+    }
 }
