@@ -16,15 +16,46 @@ export class D3EventHandler {
         })
         .on("start", function() {}) // TODO: handle drag start
         .on('drag', function (d) {
-            d3.select(this).attr('transform', 'translate(' + d.x + ',' + d.y + ')');
+            const translate = 'translate(' + d.x + ',' + d.y + ')';
+            d3.select(this).attr('transform', translate);
             D3EventHandler.transformToolBar(rootResource);
-
+            const ids = Utils.mapSource.filter(x => x.type === 's').map(x => x.idLink).forEach(ids => {
+                ids.forEach(id => {
+                    const d = d3.select('path' + '#' + id).attr('d', translate);
+                });
+            });
         }).on("end", function(d: any) {
             // TODO: if no toolbar resource then create for it, then transform
             Utils.createToolbarResource(rootResource, resourceArea);
             D3EventHandler.transformToolBar(rootResource);
         }); // TODO: handle drag end
     }
+
+    public static dragEndArrowLinked = (idOfLink, d3Path, path) => {
+        console.log(idOfLink);
+        console.log(d3Path);
+        
+        return d3.drag().subject((d) => {
+            return d;
+        })
+        .on("start", function() {
+          D3EventHandler.selectedLink = path;
+        })
+        .on('drag', function (d) {
+            d3.select(this)
+            .attr('cx', d.x)
+            .attr('cy', d.y);
+  
+            const pt2 = d3.path();
+            pt2.moveTo(d3Path._x0, d3Path._y0);
+            pt2.lineTo(d.x, d.y);
+  
+            path.attr('d', pt2);
+            
+        }).on("end", function(d: any) {
+          D3EventHandler.selectedLink = null;
+        });
+      }
 
     public static mouseOverResourceNode = (src: any) => {
         if (D3EventHandler.selectedLink) {

@@ -39,22 +39,33 @@ export class Utils {
           .classed('jss181', true);
 
         Utils.addEditToolbarButton(ddiv);
-        Utils.addLinkedToolbarButton(rootResource, resourceArea);
+        Utils.addLinkedToolbarButton(ddiv, rootResource, resourceArea);
     }
 
-    public static drawLink(container: any, resourceArea: any) {
-        const translateRootResource = container.node().parentNode.transform.baseVal.getItem(0).matrix as SVGMatrix;
+    public static drawLink(rootResource: any, resourceArea: any) {
+        const translateRootResource = rootResource.node().transform.baseVal.getItem(0).matrix as SVGMatrix;
+        const widthOfResource = rootResource.node().getBBox().width;
+        const heightOfResource = rootResource.node().getBBox().height / 2;
+        const idOfResource = rootResource.node().id;
         const d3Path = d3.path();
-        const startLine = [translateRootResource.e, translateRootResource.f + 130];
-        const endLine = [translateRootResource.e + 100, translateRootResource.f + 100];
-        d3Path.moveTo(startLine[0], startLine[1]);
-        d3Path.lineTo(endLine[0], endLine[1]);
+        const startPosition = [translateRootResource.e + widthOfResource, translateRootResource.f + heightOfResource];
+        const endPosition = [translateRootResource.e + 150, translateRootResource.f - 10];
+        d3Path.moveTo(startPosition[0], startPosition[1]);
+        d3Path.lineTo(endPosition[0], endPosition[1]);
 
-        const id = uuidv4();
-        const rootG = resourceArea.append('g').attr('id', id); // .attr('transform', this.setAttrTransform(this.activeNode))
+        const idOfLink = uuidv4();
+
+        // add id-link to source-map
+        const foundSource = this.mapSource.find(x => x.idSource === idOfResource);
+        if (foundSource) {
+          foundSource.idLink.push(idOfLink);
+          foundSource.type = 's';
+        }
+
+        const rootG = resourceArea.append('g').attr('id', idOfLink); // .attr('transform', this.setAttrTransform(this.activeNode))
         // create g-cell item
         const gCell = rootG.append('g').attr('cursor', 'cell');
-        const path = gCell.append('path').attr('stroke-width', 2).attr('stroke', 'transparent').attr('id', id)
+        const path = gCell.append('path').attr('stroke-width', 2).attr('stroke', 'transparent').attr('id', idOfLink)
              .attr('fill', '#5a48e0')
              .attr('stroke', '#5a48e0')
              .attr('stroke-linecap', 'butt')
@@ -92,9 +103,9 @@ export class Utils {
         //       .attr('stroke-width', 1);
         const gMove2 = gMove.append('g');
         const endArrow = gMove2.append('circle');
-        endArrow.attr('id', `${id}_endPoint`)
-              .attr('cx', endLine[0])
-              .attr('cy', endLine[1])
+        endArrow.attr('id', `${idOfLink}_endPoint`)
+              .attr('cx', endPosition[0])
+              .attr('cy', endPosition[1])
               .attr('r', 3)
               .attr('stroke', '#5a48e0')
               .attr('stroke-width', 2)
@@ -108,7 +119,7 @@ export class Utils {
           const that = this;
           D3EventHandler.toggleCircle(that, false);
         })
-        endArrow.call(this.dragEndArrowLinked(id, d3Path, path));
+        endArrow.call(D3EventHandler.dragEndArrowLinked(idOfLink, d3Path, path));
         // gMove2.append('polygon').attr('id', `${id}_endPoint`)
         //       .attr('stroke', '#000')
         //       .attr('shape-rendering', 'geometricPrecision')
@@ -117,32 +128,6 @@ export class Utils {
         //       .attr('fill', '#000')
         //       .attr('transform', 'rotate(0 -4150 460)')
         //       .attr('points', '-200,424 -200,430 -200,436 -200,430 -200,424');
-    }
-
-    public static dragEndArrowLinked = (idOfLink, d3Path, path) => {
-      console.log(idOfLink);
-      console.log(d3Path);
-      
-      return d3.drag().subject((d) => {
-          return d;
-      })
-      .on("start", function() {
-        D3EventHandler.selectedLink = path;
-      })
-      .on('drag', function (d) {
-          d3.select(this)
-          .attr('cx', d.x)
-          .attr('cy', d.y);
-
-          const pt2 = d3.path();
-          pt2.moveTo(d3Path._x0, d3Path._y0);
-          pt2.lineTo(d.x, d.y);
-
-          path.attr('d', pt2);
-          
-      }).on("end", function(d: any) {
-        D3EventHandler.selectedLink = null;
-      });
     }
 
     public static addEditToolbarButton(container: any) {
@@ -170,8 +155,8 @@ export class Utils {
         });
     }
 
-    public static addLinkedToolbarButton(container: any, resourceArea: any) {
-        const linkedButton = container
+    public static addLinkedToolbarButton(ddiv: any, rootResource: any, resourceArea: any) {
+        const linkedButton = ddiv
         .append('xhtml:button')
         .classed(
           'MuiButtonBase-root MuiFab-root MuiFab-sizeSmall MuiFab-primary',
@@ -192,7 +177,7 @@ export class Utils {
         );
         const me = this;
         linkedButton.on('click', function(d: any) {
-            me.drawLink(container, resourceArea);
+            me.drawLink(rootResource, resourceArea);
         });
     }
 
